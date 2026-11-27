@@ -115,11 +115,11 @@ export default function ChatWindow({
                 }}
               >
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2E7D32' }} />
-                Active
+                Demo
               </span>
             </div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              Verified clinical responses grounded in WHO, CDC & MoHFW advisories
+              Sample responses only. Check current guidance with official public health sources.
             </div>
           </div>
         </div>

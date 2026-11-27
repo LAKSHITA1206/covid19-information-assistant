@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowUpRight, Menu, X, Shield, Activity, User, LogOut } from 'lucide-react';
+import { ArrowUpRight, Menu, X, LogOut } from 'lucide-react';
 import Button from '../common/Button';
 import { useAuth } from '../../context/AuthContext';
 
@@ -8,7 +8,9 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, isAuthenticated, logout } = useAuth();
+  const { user, currentUser, isAuthenticated, logout, signOut } = useAuth();
+  const activeUser = user || currentUser;
+  const performLogout = logout || signOut;
 
   const navLinks = [
     { name: 'About', path: '/about' },
@@ -25,7 +27,7 @@ export default function Navbar() {
 
   const getInitials = (name) => {
     if (!name) return 'U';
-    const parts = name.trim().split(' ');
+    const parts = name.trim().split(/\s+/);
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   };
@@ -161,7 +163,7 @@ export default function Navbar() {
           />
 
           {/* Dynamic Authentication Controls */}
-          {isAuthenticated && currentUser ? (
+          {activeUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <Link
                 to="/profile"
@@ -192,14 +194,14 @@ export default function Navbar() {
                     fontWeight: 700
                   }}
                 >
-                  {getInitials(currentUser.name)}
+                  {getInitials(activeUser.name)}
                 </div>
-                <span>{currentUser.name}</span>
+                <span>{activeUser.name}</span>
               </Link>
 
               <button
                 onClick={() => {
-                  logout();
+                  performLogout();
                   navigate('/');
                 }}
                 title="Sign out"
@@ -222,29 +224,29 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <Link
-              to="/login"
-              style={{
-                fontSize: '0.92rem',
-                fontWeight: 600,
-                color: 'var(--text-main)',
-                transition: 'color 0.2s ease'
-              }}
-            >
-              Log in
-            </Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+              <Link
+                to="/login"
+                style={{
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  color: 'var(--text-main)',
+                  transition: 'color 0.2s ease'
+                }}
+              >
+                Log in
+              </Link>
+              <Link to="/signup">
+                <Button
+                  variant="primary"
+                  size="md"
+                  iconRight={<ArrowUpRight size={17} />}
+                >
+                  Get Started
+                </Button>
+              </Link>
+            </div>
           )}
-
-          {/* Get Started ↗ button */}
-          <Link to="/assistant">
-            <Button
-              variant="primary"
-              size="md"
-              iconRight={<ArrowUpRight size={17} />}
-            >
-              Get Started
-            </Button>
-          </Link>
         </nav>
 
         {/* Mobile Hamburger Button */}
@@ -299,18 +301,18 @@ export default function Navbar() {
               margin: '8px 0'
             }}
           />
-          {isAuthenticated && currentUser ? (
+          {activeUser ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <Link
                 to="/profile"
                 onClick={() => setMobileMenuOpen(false)}
                 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-green)' }}
               >
-                Profile ({currentUser.name})
+                My Profile ({activeUser.name})
               </Link>
               <button
                 onClick={() => {
-                  logout();
+                  performLogout();
                   setMobileMenuOpen(false);
                   navigate('/');
                 }}
@@ -319,31 +321,36 @@ export default function Navbar() {
                   fontWeight: 600,
                   color: '#DC2626',
                   textAlign: 'left',
-                  padding: '4px 0'
+                  padding: '4px 0',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer'
                 }}
               >
                 Log out
               </button>
             </div>
           ) : (
-            <Link
-              to="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}
-            >
-              Log in
-            </Link>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}
+              >
+                Log in
+              </Link>
+              <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="w-full"
+                  iconRight={<ArrowUpRight size={17} />}
+                >
+                  Get Started
+                </Button>
+              </Link>
+            </div>
           )}
-          <Link to="/assistant" onClick={() => setMobileMenuOpen(false)}>
-            <Button
-              variant="primary"
-              size="md"
-              className="w-full"
-              iconRight={<ArrowUpRight size={17} />}
-            >
-              Get Started
-            </Button>
-          </Link>
         </div>
       )}
 

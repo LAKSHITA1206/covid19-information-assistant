@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Shield, ArrowUpRight, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import Card from '../common/Card';
 import Button from '../common/Button';
@@ -12,8 +12,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [success, setSuccess] = useState(false);
+
   const navigate = useNavigate();
-  const { login, demoCredentials } = useAuth();
+  const location = useLocation();
+  const { signIn, login, demoCredentials } = useAuth();
+  const performLogin = signIn || login;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -26,21 +29,27 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(email, password);
+      await performLogin(email, password);
       setSuccess(true);
       setTimeout(() => {
-        navigate('/assistant');
+        const destination = location.state?.from?.pathname || '/assistant';
+        navigate(destination, { replace: true });
       }, 700);
     } catch (err) {
-      setErrorMsg(err.message || 'Login failed. Please verify your email and password.');
+      setErrorMsg(err.message || 'Sign in failed. Please verify your email and password.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleFillDemo = () => {
-    setEmail(demoCredentials.email);
-    setPassword(demoCredentials.password);
+    if (demoCredentials) {
+      setEmail(demoCredentials.email);
+      setPassword(demoCredentials.password);
+    } else {
+      setEmail('alex.johnson@healthlab.org');
+      setPassword('SecurePass2026!');
+    }
     setErrorMsg('');
   };
 
@@ -151,6 +160,7 @@ export default function LoginPage() {
         {/* Error Alert */}
         {errorMsg && (
           <div
+            role="alert"
             style={{
               backgroundColor: '#FEF2F2',
               border: '1px solid #FECACA',
@@ -208,7 +218,14 @@ export default function LoginPage() {
               <label style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)' }}>
                 Password
               </label>
-              <a href="#demo" onClick={(e) => { e.preventDefault(); handleFillDemo(); }} style={{ fontSize: '0.78rem', color: 'var(--brand-green)', fontWeight: 600 }}>
+              <a
+                href="#demo"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleFillDemo();
+                }}
+                style={{ fontSize: '0.78rem', color: 'var(--brand-green)', fontWeight: 600 }}
+              >
                 Use demo account
               </a>
             </div>
@@ -239,6 +256,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>

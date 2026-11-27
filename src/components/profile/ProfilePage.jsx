@@ -21,18 +21,26 @@ import { useAuth } from '../../context/AuthContext';
 import { MOCK_USER_PROFILE } from '../../data/sampleData';
 
 export default function ProfilePage() {
-  const { currentUser, isAuthenticated, logout } = useAuth();
+  const { user, currentUser, isAuthenticated, logout, signOut } = useAuth();
   const navigate = useNavigate();
+  const activeUser = user || currentUser;
+  const performLogout = logout || signOut;
 
-  // Use dynamic user profile or fallback to demo
-  const profile = currentUser || MOCK_USER_PROFILE;
-
-  const getInitials = (name) => {
-    if (!name) return 'U';
-    const parts = name.trim().split(' ');
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  // Combine authenticated user details with health passport records
+  const profile = {
+    ...MOCK_USER_PROFILE,
+    name: activeUser?.name || MOCK_USER_PROFILE.name,
+    email: activeUser?.email || MOCK_USER_PROFILE.email,
+    role: activeUser?.role || MOCK_USER_PROFILE.role
   };
+
+  const initials = profile.name
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   return (
     <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '40px 24px 80px 24px' }}>
@@ -51,7 +59,7 @@ export default function ProfilePage() {
         {isAuthenticated && (
           <button
             onClick={() => {
-              logout();
+              performLogout();
               navigate('/login');
             }}
             style={{
@@ -100,7 +108,7 @@ export default function ProfilePage() {
                   fontWeight: 700
                 }}
               >
-                {getInitials(profile.name)}
+                {initials}
               </div>
               <div>
                 <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--brand-green)' }}>

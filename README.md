@@ -30,7 +30,7 @@ This frontend reproduces the exact design system, aesthetics, layout, and compon
    - Public health epidemiological dashboard with 7-day trend visualizations, ICU metrics, and clinic finder
    - Digital COVID-19 Vaccination Passport with simulated QR code and dose chronology
    - Searchable, categorized Clinical & Care Guidelines library
-   - Authentication (Login & Signup) with role selection
+   - Backend-backed email/password authentication with role selection
    - Video tour / "See how it works" interactive modal
 
 ---
@@ -42,6 +42,9 @@ covid19-information-assistant/
 ├── index.html                     # HTML root with Google Fonts & metadata
 ├── package.json                   # Dependencies (React 18, Vite, Lucide-React, Router)
 ├── vite.config.js                 # Vite bundler configuration
+├── backend/                       # FastAPI API and authentication
+├── requirements.txt               # Python backend dependencies
+├── .env.example                   # Backend configuration template
 ├── dist/                          # Production-ready build artifacts
 ├── src/
 │   ├── main.jsx                   # React root mount with BrowserRouter
@@ -86,13 +89,24 @@ covid19-information-assistant/
 
 ## 🚀 How to Run Locally
 
-### 1. Navigate to the project directory:
+### 1. Start the FastAPI backend
+
+From this repository directory:
 ```powershell
-cd C:\Users\RADHE\.gemini\antigravity\scratch\covid19-information-assistant
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
 ```
 
-### 2. Start the local Vite development server:
+Edit `.env` and replace `JWT_SECRET_KEY` with a private random value of at least 32 characters. Then start the backend:
 ```powershell
+python -m uvicorn backend.main:app --reload --port 8000 --env-file .env
+```
+
+### 2. Start the frontend
+
+In a second terminal, from the repository directory:
+```powershell
+npm install
 npm run dev
 ```
 
@@ -113,11 +127,14 @@ Open this URL in your web browser.
 | `/dashboard` | **Health Dashboard** | National active cases, recovery rate, vaccine doses administered, 7-day trend chart, search bar for testing/vaccine centers, and official clinical advisory download banner. |
 | `/resources` | **Care Guidelines** | Category filter tabs (`Patient Care`, `Vulnerable Groups`, `Travel Advisory`), live text search, and guideline cards with read times and verified sources. |
 | `/profile` | **Health Passport** | Personal details, emergency contacts, digital vaccination certificate with simulated QR code, ABHA ID, and dose history (Dose 1, Dose 2, Precaution Booster). |
-| `/login` | **Sign In** | Branded authentication card with prefilled sample credentials, password visibility toggle, and instant redirect to Assistant. |
+| `/login` | **Sign In** | Sign in with an account created on the signup page; the backend checks credentials. |
 | `/signup` | **Create Account** | Account registration form with role selection (Citizen, Healthcare Worker, Student/Researcher). |
 | `/about` | **Project Architecture** | IBM Skill Lab mission, problem statement, and Python FastAPI backend readiness breakdown. |
 
 ---
 
-## 🔌 FastAPI Backend Readiness
-The frontend communicates through `src/services/api.js`. Once your Python FastAPI backend is ready with endpoints for `/api/chat`, `/api/metrics`, etc., set `USE_MOCK = false` in `src/services/api.js` to immediately transition to live backend data.
+## Backend and authentication
+
+Signup and login use the FastAPI backend. Accounts are stored in SQLite and passwords are hashed with PBKDF2. The signed access token is kept in an HttpOnly cookie. `/assistant` and `/profile` require a signed-in account. The dashboard, resources, chat conversations, and health passport details still use demo data. The backend `/api/chat` route is an authenticated placeholder; connect a verified health information provider before using it for real health guidance. Roles are profile labels, not authorization levels.
+
+The API docs are available at `http://localhost:8000/docs`. Access cookies expire after 60 minutes. Password reset, email verification, and token refresh are not implemented. For an HTTPS deployment, set `COOKIE_SECURE=true` in the backend environment.

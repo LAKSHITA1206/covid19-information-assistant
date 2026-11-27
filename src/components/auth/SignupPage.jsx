@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, ArrowUpRight, Lock, Mail, User, CheckCircle2, HeartPulse, AlertCircle } from 'lucide-react';
+import { ArrowUpRight, Lock, Mail, User, CheckCircle2, HeartPulse, AlertCircle } from 'lucide-react';
 import Card from '../common/Card';
 import Button from '../common/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -15,8 +15,10 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [success, setSuccess] = useState(false);
+
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signUp, signup } = useAuth();
+  const performSignUp = signUp || signup;
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -34,13 +36,13 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      await signup(formData);
+      await performSignUp(formData);
       setSuccess(true);
       setTimeout(() => {
         navigate('/assistant');
       }, 700);
     } catch (err) {
-      setErrorMsg(err.message || 'Signup failed. Please try again.');
+      setErrorMsg(err.message || 'Account creation failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -113,6 +115,7 @@ export default function SignupPage() {
         {/* Error Alert */}
         {errorMsg && (
           <div
+            role="alert"
             style={{
               backgroundColor: '#FEF2F2',
               border: '1px solid #FECACA',
@@ -215,6 +218,8 @@ export default function SignupPage() {
               <input
                 type="password"
                 required
+                minLength={6}
+                maxLength={128}
                 value={formData.password}
                 onChange={(e) => {
                   setFormData({ ...formData, password: e.target.value });
