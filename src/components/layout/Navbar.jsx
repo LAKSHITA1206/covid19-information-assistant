@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ArrowUpRight, Menu, X, Shield, Activity } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowUpRight, Menu, X, Shield, Activity, User, LogOut } from 'lucide-react';
 import Button from '../common/Button';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser, isAuthenticated, logout } = useAuth();
 
   const navLinks = [
     { name: 'About', path: '/about' },
@@ -18,6 +21,13 @@ export default function Navbar() {
   const isActive = (path) => {
     if (path.startsWith('/#')) return false;
     return location.pathname === path;
+  };
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   };
 
   return (
@@ -107,7 +117,7 @@ export default function Navbar() {
           style={{
             display: 'none',
             alignItems: 'center',
-            gap: '32px'
+            gap: '28px'
           }}
           className="desktop-nav"
         >
@@ -150,18 +160,80 @@ export default function Navbar() {
             }}
           />
 
-          {/* Log in */}
-          <Link
-            to="/login"
-            style={{
-              fontSize: '0.92rem',
-              fontWeight: 600,
-              color: 'var(--text-main)',
-              transition: 'color 0.2s ease'
-            }}
-          >
-            Log in
-          </Link>
+          {/* Dynamic Authentication Controls */}
+          {isAuthenticated && currentUser ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <Link
+                to="/profile"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
+                  backgroundColor: 'var(--accent-sage)',
+                  color: 'var(--brand-green)',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  textDecoration: 'none'
+                }}
+              >
+                <div
+                  style={{
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--brand-green)',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.75rem',
+                    fontWeight: 700
+                  }}
+                >
+                  {getInitials(currentUser.name)}
+                </div>
+                <span>{currentUser.name}</span>
+              </Link>
+
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/');
+                }}
+                title="Sign out"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '6px 12px',
+                  borderRadius: '9999px',
+                  border: '1px solid var(--border-light)',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  backgroundColor: 'transparent'
+                }}
+              >
+                <LogOut size={14} />
+                <span>Logout</span>
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              style={{
+                fontSize: '0.92rem',
+                fontWeight: 600,
+                color: 'var(--text-main)',
+                transition: 'color 0.2s ease'
+              }}
+            >
+              Log in
+            </Link>
+          )}
 
           {/* Get Started ↗ button */}
           <Link to="/assistant">
@@ -227,13 +299,41 @@ export default function Navbar() {
               margin: '8px 0'
             }}
           />
-          <Link
-            to="/login"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}
-          >
-            Log in
-          </Link>
+          {isAuthenticated && currentUser ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <Link
+                to="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--brand-green)' }}
+              >
+                Profile ({currentUser.name})
+              </Link>
+              <button
+                onClick={() => {
+                  logout();
+                  setMobileMenuOpen(false);
+                  navigate('/');
+                }}
+                style={{
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  color: '#DC2626',
+                  textAlign: 'left',
+                  padding: '4px 0'
+                }}
+              >
+                Log out
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}
+            >
+              Log in
+            </Link>
+          )}
           <Link to="/assistant" onClick={() => setMobileMenuOpen(false)}>
             <Button
               variant="primary"

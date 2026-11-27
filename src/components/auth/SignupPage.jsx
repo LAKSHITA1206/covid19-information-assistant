@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, ArrowUpRight, Lock, Mail, User, CheckCircle2, HeartPulse } from 'lucide-react';
+import { Shield, ArrowUpRight, Lock, Mail, User, CheckCircle2, HeartPulse, AlertCircle } from 'lucide-react';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import { apiService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -13,20 +13,34 @@ export default function SignupPage() {
     role: 'Citizen'
   });
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { signup } = useAuth();
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+
+    if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) {
+      setErrorMsg('All fields are required.');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters long.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await apiService.signup(formData);
+      await signup(formData);
       setSuccess(true);
       setTimeout(() => {
         navigate('/assistant');
-      }, 800);
+      }, 700);
     } catch (err) {
-      alert('Signup failed.');
+      setErrorMsg(err.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -74,13 +88,14 @@ export default function SignupPage() {
           </p>
         </div>
 
+        {/* Success Alert */}
         {success && (
           <div
             style={{
               backgroundColor: '#DCFCE7',
               border: '1px solid #BBF7D0',
               color: '#15803D',
-              padding: '12px',
+              padding: '12px 16px',
               borderRadius: '12px',
               fontSize: '0.86rem',
               fontWeight: 600,
@@ -91,7 +106,29 @@ export default function SignupPage() {
             }}
           >
             <CheckCircle2 size={18} />
-            <span>Account created! Welcome to COVID-19 Assistant.</span>
+            <span>Account created! Logging you in...</span>
+          </div>
+        )}
+
+        {/* Error Alert */}
+        {errorMsg && (
+          <div
+            style={{
+              backgroundColor: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: '#DC2626',
+              padding: '12px 16px',
+              borderRadius: '12px',
+              fontSize: '0.86rem',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '20px'
+            }}
+          >
+            <AlertCircle size={18} />
+            <span>{errorMsg}</span>
           </div>
         )}
 
@@ -117,8 +154,11 @@ export default function SignupPage() {
                 type="text"
                 required
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Alex Johnson"
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  setErrorMsg('');
+                }}
+                placeholder="e.g. Lakshita Sharma"
                 style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.92rem' }}
               />
             </div>
@@ -145,8 +185,11 @@ export default function SignupPage() {
                 type="email"
                 required
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="alex.johnson@healthlab.org"
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  setErrorMsg('');
+                }}
+                placeholder="name@example.com"
                 style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.92rem' }}
               />
             </div>
@@ -173,8 +216,11 @@ export default function SignupPage() {
                 type="password"
                 required
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="At least 8 characters"
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                  setErrorMsg('');
+                }}
+                placeholder="At least 6 characters"
                 style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.92rem' }}
               />
             </div>
@@ -211,9 +257,9 @@ export default function SignupPage() {
             size="lg"
             disabled={loading}
             iconRight={<ArrowUpRight size={18} />}
-            style={{ width: '100%', marginTop: '12px' }}
+            style={{ width: '100%', marginTop: '8px' }}
           >
-            {loading ? 'Creating...' : 'Register Account'}
+            {loading ? 'Creating Account...' : 'Register Account'}
           </Button>
 
           <div style={{ textAlign: 'center', fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '8px' }}>

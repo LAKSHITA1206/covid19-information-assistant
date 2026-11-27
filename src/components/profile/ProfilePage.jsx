@@ -10,27 +10,68 @@ import {
   Calendar,
   Syringe,
   CheckCircle2,
-  Clock
+  Clock,
+  LogOut
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../common/Card';
 import Badge from '../common/Badge';
 import Button from '../common/Button';
+import { useAuth } from '../../context/AuthContext';
 import { MOCK_USER_PROFILE } from '../../data/sampleData';
 
 export default function ProfilePage() {
-  const profile = MOCK_USER_PROFILE;
+  const { currentUser, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Use dynamic user profile or fallback to demo
+  const profile = currentUser || MOCK_USER_PROFILE;
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
 
   return (
     <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '40px 24px 80px 24px' }}>
       {/* Title */}
-      <div style={{ marginBottom: '32px' }}>
-        <Badge dot={true} className="mb-2">Verified Citizen Account</Badge>
-        <h1 style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--brand-green)', letterSpacing: '-0.02em', marginTop: '6px' }}>
-          Personal Health Passport & Records
-        </h1>
-        <p style={{ fontSize: '0.96rem', color: 'var(--text-body)', marginTop: '4px' }}>
-          Digital proof of vaccination, emergency medical contacts, and verified immunity milestones.
-        </p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '32px' }}>
+        <div>
+          <Badge dot={true} className="mb-2">Verified Citizen Account</Badge>
+          <h1 style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--brand-green)', letterSpacing: '-0.02em', marginTop: '6px' }}>
+            Personal Health Passport & Records
+          </h1>
+          <p style={{ fontSize: '0.96rem', color: 'var(--text-body)', marginTop: '4px' }}>
+            Digital proof of vaccination, emergency medical contacts, and verified immunity milestones.
+          </p>
+        </div>
+
+        {isAuthenticated && (
+          <button
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 18px',
+              borderRadius: '9999px',
+              backgroundColor: '#FEE2E2',
+              color: '#DC2626',
+              fontWeight: 700,
+              fontSize: '0.86rem',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <LogOut size={16} />
+            <span>Sign Out</span>
+          </button>
+        )}
       </div>
 
       <div
@@ -59,14 +100,14 @@ export default function ProfilePage() {
                   fontWeight: 700
                 }}
               >
-                AJ
+                {getInitials(profile.name)}
               </div>
               <div>
                 <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--brand-green)' }}>
                   {profile.name}
                 </h3>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  {profile.role} • Blood Group: <strong>{profile.bloodGroup}</strong>
+                  {profile.role || 'Citizen'} • Blood Group: <strong>{profile.bloodGroup || 'O+'}</strong>
                 </div>
               </div>
             </div>
@@ -78,11 +119,11 @@ export default function ProfilePage() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-body)' }}>
                 <Phone size={16} color="var(--brand-green)" />
-                <span>{profile.phone}</span>
+                <span>{profile.phone || '+91 98765 43210'}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-body)' }}>
                 <MapPin size={16} color="var(--brand-green)" />
-                <span>{profile.city}</span>
+                <span>{profile.city || 'India'}</span>
               </div>
             </div>
 
@@ -98,9 +139,11 @@ export default function ProfilePage() {
                 Emergency Contact
               </h4>
               <div style={{ fontSize: '0.88rem', color: 'var(--text-body)' }}>
-                <div>{profile.emergencyContact.name} ({profile.emergencyContact.relation})</div>
+                <div>
+                  {profile.emergencyContact?.name || 'Primary Contact'} ({profile.emergencyContact?.relation || 'Emergency'})
+                </div>
                 <div style={{ fontWeight: 600, color: 'var(--brand-green)', marginTop: '2px' }}>
-                  {profile.emergencyContact.phone}
+                  {profile.emergencyContact?.phone || '+91 98765 12345'}
                 </div>
               </div>
             </div>
@@ -188,17 +231,17 @@ export default function ProfilePage() {
                 Universal Health ID (ABHA)
               </div>
               <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--brand-green)', letterSpacing: '0.03em' }}>
-                {profile.vaccineRecord.beneficiaryId}
+                {profile.vaccineRecord?.beneficiaryId || 'ABHA-9821-4402-9118'}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-body)', marginTop: '4px' }}>
-                Status: <strong style={{ color: '#15803D' }}>{profile.vaccineRecord.status}</strong>
+                Status: <strong style={{ color: '#15803D' }}>{profile.vaccineRecord?.status || 'Fully Vaccinated'}</strong>
               </div>
             </div>
           </div>
 
           {/* Doses Chronology */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
-            {profile.vaccineRecord.doses.map((d, idx) => (
+            {(profile.vaccineRecord?.doses || []).map((d, idx) => (
               <div
                 key={idx}
                 style={{
@@ -248,7 +291,7 @@ export default function ProfilePage() {
             size="md"
             iconLeft={<FileDown size={18} />}
             style={{ width: '100%' }}
-            onClick={() => alert('Certificate downloaded: COVID19-Vaccine-Passport-AlexJohnson.pdf')}
+            onClick={() => alert(`Certificate downloaded for ${profile.name}: COVID19-Vaccine-Passport.pdf`)}
           >
             Download Official Vaccination Certificate (PDF)
           </Button>

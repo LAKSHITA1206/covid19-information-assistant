@@ -1,32 +1,47 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, ArrowUpRight, Lock, Mail, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Shield, ArrowUpRight, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import { apiService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('alex.johnson@healthlab.org');
-  const [password, setPassword] = useState('SecurePass2026!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { login, demoCredentials } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+
+    if (!email.trim() || !password.trim()) {
+      setErrorMsg('Please enter both email and password.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await apiService.login(email, password);
+      await login(email, password);
       setSuccess(true);
       setTimeout(() => {
         navigate('/assistant');
-      }, 800);
+      }, 700);
     } catch (err) {
-      alert('Login failed. Please check your credentials.');
+      setErrorMsg(err.message || 'Login failed. Please verify your email and password.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFillDemo = () => {
+    setEmail(demoCredentials.email);
+    setPassword(demoCredentials.password);
+    setErrorMsg('');
   };
 
   return (
@@ -48,7 +63,7 @@ export default function LoginPage() {
         }}
       >
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div
             style={{
               width: '48px',
@@ -69,17 +84,56 @@ export default function LoginPage() {
             Welcome Back
           </h2>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Log in to access your digital vaccination passport & saved medical consultations.
+            Sign in to access your digital vaccination passport & medical consultations.
           </p>
         </div>
 
+        {/* Demo Account Quick-Fill Helper */}
+        <div
+          style={{
+            backgroundColor: 'var(--accent-sage)',
+            border: '1px solid rgba(30, 62, 52, 0.1)',
+            borderRadius: '14px',
+            padding: '12px 16px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={16} color="var(--brand-green)" />
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--brand-green)' }}>
+              Testing the app?
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleFillDemo}
+            style={{
+              backgroundColor: '#FFFFFF',
+              color: 'var(--brand-green)',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              padding: '6px 12px',
+              borderRadius: '9999px',
+              border: '1px solid rgba(30, 62, 52, 0.15)',
+              cursor: 'pointer'
+            }}
+          >
+            Fill Demo Credentials
+          </button>
+        </div>
+
+        {/* Success Alert */}
         {success && (
           <div
             style={{
               backgroundColor: '#DCFCE7',
               border: '1px solid #BBF7D0',
               color: '#15803D',
-              padding: '12px',
+              padding: '12px 16px',
               borderRadius: '12px',
               fontSize: '0.86rem',
               fontWeight: 600,
@@ -90,11 +144,33 @@ export default function LoginPage() {
             }}
           >
             <CheckCircle2 size={18} />
-            <span>Login successful! Redirecting to Assistant...</span>
+            <span>Login successful! Opening Assistant...</span>
           </div>
         )}
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Error Alert */}
+        {errorMsg && (
+          <div
+            style={{
+              backgroundColor: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: '#DC2626',
+              padding: '12px 16px',
+              borderRadius: '12px',
+              fontSize: '0.86rem',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '20px'
+            }}
+          >
+            <AlertCircle size={18} />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {/* Email field */}
           <div>
             <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
@@ -116,7 +192,10 @@ export default function LoginPage() {
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrorMsg('');
+                }}
                 placeholder="you@domain.com"
                 style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.92rem' }}
               />
@@ -129,8 +208,8 @@ export default function LoginPage() {
               <label style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)' }}>
                 Password
               </label>
-              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Password reset link sent to demo email.'); }} style={{ fontSize: '0.78rem', color: 'var(--brand-green)', fontWeight: 600 }}>
-                Forgot password?
+              <a href="#demo" onClick={(e) => { e.preventDefault(); handleFillDemo(); }} style={{ fontSize: '0.78rem', color: 'var(--brand-green)', fontWeight: 600 }}>
+                Use demo account
               </a>
             </div>
             <div
@@ -149,14 +228,17 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrorMsg('');
+                }}
                 placeholder="••••••••••••"
                 style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '0.92rem' }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ color: 'var(--text-muted)' }}
+                style={{ color: 'var(--text-muted)', cursor: 'pointer' }}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -170,7 +252,7 @@ export default function LoginPage() {
             size="lg"
             disabled={loading}
             iconRight={<ArrowUpRight size={18} />}
-            style={{ width: '100%', marginTop: '8px' }}
+            style={{ width: '100%', marginTop: '6px' }}
           >
             {loading ? 'Authenticating...' : 'Sign In'}
           </Button>
