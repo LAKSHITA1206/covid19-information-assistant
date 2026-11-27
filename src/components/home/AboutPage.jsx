@@ -84,11 +84,10 @@ export default function AboutPage() {
       {/* Architecture & Backend Readiness */}
       <Card style={{ padding: '40px', marginBottom: '48px', backgroundColor: '#FFFFFF' }}>
         <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--brand-green)', marginBottom: '16px' }}>
-          Architecture & Python FastAPI Readiness
+          React App & FastAPI Backend
         </h3>
         <p style={{ fontSize: '0.96rem', color: 'var(--text-body)', lineHeight: 1.6, marginBottom: '28px' }}>
-          The frontend is deliberately built with a dedicated service abstraction layer (`src/services/api.js`).
-          When the Python FastAPI backend is started, connecting requires changing a single boolean flag without modifying UI code:
+          Account creation and sign-in are connected to the Python FastAPI backend. It stores accounts in SQLite, verifies hashed passwords, and protects the assistant and profile routes with signed access tokens:
         </p>
 
         <div
@@ -112,7 +111,7 @@ export default function AboutPage() {
               <Server size={18} /> API Service Layer
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-body)' }}>
-              Configured endpoint contracts: `/api/chat`, `/api/metrics`, `/api/auth/login`, and `/api/resources`.
+              Live account routes: `/auth/signup`, `/auth/login`, and `/auth/me`. Dashboard and resource screens still show sample data.
             </p>
           </div>
 
@@ -121,7 +120,7 @@ export default function AboutPage() {
               <Database size={18} /> FastAPI Target
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-body)' }}>
-              Ready for Python FastAPI asynchronous endpoints, RAG embeddings, or Supabase integrations.
+              The authenticated chat endpoint is a placeholder. A verified health content provider must be connected before it can answer medical questions.
             </p>
           </div>
         </div>

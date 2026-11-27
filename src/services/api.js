@@ -1,6 +1,6 @@
 // Frontend API Service Layer
-// Currently configured with realistic mock data, completely structured
-// to integrate smoothly with a future Python FastAPI backend.
+// Live authentication uses the FastAPI backend. Other sample screens still
+// use the realistic demo data below until their endpoints are connected.
 
 import {
   INITIAL_CONVERSATIONS,
@@ -9,19 +9,34 @@ import {
   MOCK_USER_PROFILE
 } from '../data/sampleData';
 
-const BASE_API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-const USE_MOCK = true; // Set to false once Python FastAPI backend is running
+const BASE_API_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+const USE_MOCK_CHAT = true;
+
+async function requestJson(path, options = {}) {
+  const response = await fetch(`${BASE_API_URL}${path}`, { credentials: 'include', ...options });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const detail = Array.isArray(data.detail)
+      ? data.detail.map((item) => item.msg).filter(Boolean).join(' ')
+      : data.detail;
+    throw new Error(detail || 'The request could not be completed.');
+  }
+  return data;
+}
+
+function jsonHeaders() {
+  return { 'Content-Type': 'application/json' };
+}
 
 export const apiService = {
   // Send message to assistant
   async sendMessage(conversationId, userText) {
-    if (!USE_MOCK) {
-      const res = await fetch(`${BASE_API_URL}/chat`, {
+    if (!USE_MOCK_CHAT) {
+      return await requestJson('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: jsonHeaders(),
         body: JSON.stringify({ conversation_id: conversationId, message: userText })
       });
-      return await res.json();
     }
 
     // Realistic mock AI response with evidence-grounding
@@ -32,7 +47,7 @@ export const apiService = {
 
     const lower = userText.toLowerCase();
     if (lower.includes('protect') || lower.includes('family') || lower.includes('prevent')) {
-      replyText = "Let's break it down. Small, everyday steps can help reduce your risk:\n\n• **Stay updated on vaccines & boosters**: Keeps severe illness risk to a minimum.\n• **Improve ventilation indoors**: Open windows or use air filtration where feasible.\n• **Practice hand hygiene**: Frequent washing with soap or using alcohol-based sanitizer.\n• **Wear high-filtration masks (N95/KN95)**: Particularly in crowded or poorly ventilated public spaces.\n• **Isolate if unwell**: Stay home if you or family members show acute respiratory symptoms.";
+      replyText = "Let's break it down. Small, everyday steps can help reduce your risk:\n\n• **Stay updated on vaccines \u0026 boosters**: Keeps severe illness risk to a minimum.\n• **Improve ventilation indoors**: Open windows or use air filtration where feasible.\n• **Practice hand hygiene**: Frequent washing with soap or using alcohol-based sanitizer.\n• **Wear high-filtration masks (N95/KN95)**: Particularly in crowded or poorly ventilated public spaces.\n• **Isolate if unwell**: Stay home if you or family members show acute respiratory symptoms.";
       sources = ['WHO Guidance', 'CDC Coronavirus Prevention'];
     } else if (lower.includes('symptom') || lower.includes('fever') || lower.includes('cough')) {
       replyText = "Key symptoms currently reported for respiratory variants include:\n\n1. **Mild to moderate fever or chills**\n2. **Dry or productive cough**\n3. **Sore throat and nasal congestion**\n4. **Body fatigue and muscle aches**\n5. **Mild gastrointestinal upset** (in some individuals)\n\n**Emergency warning signs**: If you experience persistent chest pain, bluish lips/face, or difficulty breathing, call emergency services (1075 / 911) immediately.";
@@ -74,23 +89,30 @@ export const apiService = {
     return MOCK_USER_PROFILE;
   },
 
-  // Login authentication mock
-  async login(email, password) {
-    await new Promise((r) => setTimeout(r, 400));
-    return {
-      success: true,
-      token: 'mock-jwt-token-771829',
-      user: { name: 'Alex Johnson', email, role: 'Citizen' }
-    };
+  async getCurrentUser() {
+    return await requestJson('/auth/me');
   },
 
-  // Signup authentication mock
-  async signup(data) {
-    await new Promise((r) => setTimeout(r, 400));
-    return {
-      success: true,
-      token: 'mock-jwt-token-892110',
-      user: { name: data.name, email: data.email, role: data.role || 'Citizen' }
-    };
+  // Login and signup are always handled by the backend.
+  async login(email, password) {
+    const data = await requestJson('/auth/login', {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ email, password })
+    });
+    return data;
+  },
+
+  async signup(formData) {
+    const data = await requestJson('/auth/signup', {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify(formData)
+    });
+    return data;
+  },
+
+  async logout() {
+    return await requestJson('/auth/logout', { method: 'POST' });
   }
 };

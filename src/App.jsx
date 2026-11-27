@@ -12,6 +12,7 @@ import ProfilePage from './components/profile/ProfilePage';
 import LoginPage from './components/auth/LoginPage';
 import SignupPage from './components/auth/SignupPage';
 import AboutPage from './components/home/AboutPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function HomePage() {
   return (
@@ -34,10 +35,10 @@ export default function App() {
       <div style={{ flex: 1 }}>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/assistant" element={<AssistantPage />} />
+          <Route path="/assistant" element={<ProtectedRoute><AssistantPage /></ProtectedRoute>} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/about" element={<AboutPage />} />

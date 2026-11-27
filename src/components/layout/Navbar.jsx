@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowUpRight, Menu, X, Shield, Activity } from 'lucide-react';
 import Button from '../common/Button';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const navLinks = [
     { name: 'About', path: '/about' },
@@ -150,29 +152,25 @@ export default function Navbar() {
             }}
           />
 
-          {/* Log in */}
-          <Link
-            to="/login"
-            style={{
-              fontSize: '0.92rem',
-              fontWeight: 600,
-              color: 'var(--text-main)',
-              transition: 'color 0.2s ease'
-            }}
-          >
-            Log in
-          </Link>
-
-          {/* Get Started ↗ button */}
-          <Link to="/assistant">
-            <Button
-              variant="primary"
-              size="md"
-              iconRight={<ArrowUpRight size={17} />}
-            >
-              Get Started
-            </Button>
-          </Link>
+          {user ? (
+            <>
+              <Link to="/profile" style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                {user.name}
+              </Link>
+              <Button variant="outline" size="md" onClick={signOut}>Log out</Button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-main)', transition: 'color 0.2s ease' }}>
+                Log in
+              </Link>
+              <Link to="/signup">
+                <Button variant="primary" size="md" iconRight={<ArrowUpRight size={17} />}>
+                  Get Started
+                </Button>
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Mobile Hamburger Button */}
@@ -227,23 +225,27 @@ export default function Navbar() {
               margin: '8px 0'
             }}
           />
-          <Link
-            to="/login"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}
-          >
-            Log in
-          </Link>
-          <Link to="/assistant" onClick={() => setMobileMenuOpen(false)}>
-            <Button
-              variant="primary"
-              size="md"
-              className="w-full"
-              iconRight={<ArrowUpRight size={17} />}
-            >
-              Get Started
-            </Button>
-          </Link>
+          {user ? (
+            <>
+              <Link to="/profile" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                My profile ({user.name})
+              </Link>
+              <Button variant="outline" size="md" className="w-full" onClick={() => { signOut(); setMobileMenuOpen(false); }}>
+                Log out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                Log in
+              </Link>
+              <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="primary" size="md" className="w-full" iconRight={<ArrowUpRight size={17} />}>
+                  Get Started
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       )}
 

@@ -1,29 +1,33 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Shield, ArrowUpRight, Lock, Mail, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import { apiService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('alex.johnson@healthlab.org');
-  const [password, setPassword] = useState('SecurePass2026!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
     try {
-      await apiService.login(email, password);
+      await signIn(email, password);
       setSuccess(true);
       setTimeout(() => {
-        navigate('/assistant');
+        navigate(location.state?.from?.pathname || '/assistant', { replace: true });
       }, 800);
     } catch (err) {
-      alert('Login failed. Please check your credentials.');
+      setError(err.message || 'Sign in failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -69,7 +73,7 @@ export default function LoginPage() {
             Welcome Back
           </h2>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Log in to access your digital vaccination passport & saved medical consultations.
+            Sign in to access the information assistant and your account profile.
           </p>
         </div>
 
@@ -91,6 +95,12 @@ export default function LoginPage() {
           >
             <CheckCircle2 size={18} />
             <span>Login successful! Redirecting to Assistant...</span>
+          </div>
+        )}
+
+        {error && (
+          <div role="alert" style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C', padding: '12px', borderRadius: '12px', fontSize: '0.86rem', marginBottom: '20px' }}>
+            {error}
           </div>
         )}
 
@@ -129,7 +139,7 @@ export default function LoginPage() {
               <label style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)' }}>
                 Password
               </label>
-              <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Password reset link sent to demo email.'); }} style={{ fontSize: '0.78rem', color: 'var(--brand-green)', fontWeight: 600 }}>
+              <a href="#forgot" onClick={(e) => { e.preventDefault(); setError('Password reset is not configured yet. Please contact your project administrator.'); }} style={{ fontSize: '0.78rem', color: 'var(--brand-green)', fontWeight: 600 }}>
                 Forgot password?
               </a>
             </div>

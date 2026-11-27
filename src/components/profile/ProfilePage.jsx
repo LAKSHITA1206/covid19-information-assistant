@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   User,
-  ShieldCheck,
   QrCode,
   FileDown,
   Phone,
@@ -16,20 +15,23 @@ import Card from '../common/Card';
 import Badge from '../common/Badge';
 import Button from '../common/Button';
 import { MOCK_USER_PROFILE } from '../../data/sampleData';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProfilePage() {
-  const profile = MOCK_USER_PROFILE;
+  const { user } = useAuth();
+  const profile = { ...MOCK_USER_PROFILE, name: user?.name || MOCK_USER_PROFILE.name, email: user?.email || MOCK_USER_PROFILE.email, role: user?.role || MOCK_USER_PROFILE.role };
+  const initials = profile.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase();
 
   return (
     <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '40px 24px 80px 24px' }}>
       {/* Title */}
       <div style={{ marginBottom: '32px' }}>
-        <Badge dot={true} className="mb-2">Verified Citizen Account</Badge>
+        <Badge dot={true} className="mb-2">Demo health data</Badge>
         <h1 style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--brand-green)', letterSpacing: '-0.02em', marginTop: '6px' }}>
-          Personal Health Passport & Records
+          Sample Health Passport
         </h1>
         <p style={{ fontSize: '0.96rem', color: 'var(--text-body)', marginTop: '4px' }}>
-          Digital proof of vaccination, emergency medical contacts, and verified immunity milestones.
+          Your account is real, but the phone, emergency contact, and vaccination details shown here are sample data, not an official medical record.
         </p>
       </div>
 
@@ -59,7 +61,7 @@ export default function ProfilePage() {
                   fontWeight: 700
                 }}
               >
-                AJ
+                {initials}
               </div>
               <div>
                 <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--brand-green)' }}>
@@ -150,7 +152,7 @@ export default function ProfilePage() {
                 fontWeight: 700
               }}
             >
-              <ShieldCheck size={16} /> Verified
+                Sample
             </div>
           </div>
 
@@ -185,13 +187,13 @@ export default function ProfilePage() {
 
             <div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                Universal Health ID (ABHA)
+                Sample Beneficiary ID
               </div>
               <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--brand-green)', letterSpacing: '0.03em' }}>
                 {profile.vaccineRecord.beneficiaryId}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-body)', marginTop: '4px' }}>
-                Status: <strong style={{ color: '#15803D' }}>{profile.vaccineRecord.status}</strong>
+                Status: <strong style={{ color: '#15803D' }}>Demo record</strong>
               </div>
             </div>
           </div>

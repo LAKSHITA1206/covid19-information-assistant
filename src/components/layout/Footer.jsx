@@ -63,7 +63,7 @@ export default function Footer() {
                 color: 'var(--brand-green)'
               }}
             >
-              <ShieldCheck size={16} /> Verified Health Protocol
+              <ShieldCheck size={16} /> Health Information Demo
             </div>
           </div>
 

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, ArrowUpRight, Lock, Mail, User, CheckCircle2, HeartPulse } from 'lucide-react';
+import { ArrowUpRight, Lock, Mail, User, CheckCircle2, HeartPulse } from 'lucide-react';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import { apiService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -14,19 +14,22 @@ export default function SignupPage() {
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
     try {
-      await apiService.signup(formData);
+      await signUp(formData);
       setSuccess(true);
       setTimeout(() => {
         navigate('/assistant');
       }, 800);
     } catch (err) {
-      alert('Signup failed.');
+      setError(err.message || 'Account creation failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -70,7 +73,7 @@ export default function SignupPage() {
             Create Your Account
           </h2>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Get individualized health guidance, quarantine tracking, and vaccine passport sync.
+            Create an account to access the information assistant and your account profile.
           </p>
         </div>
 
@@ -92,6 +95,12 @@ export default function SignupPage() {
           >
             <CheckCircle2 size={18} />
             <span>Account created! Welcome to COVID-19 Assistant.</span>
+          </div>
+        )}
+
+        {error && (
+          <div role="alert" style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C', padding: '12px', borderRadius: '12px', fontSize: '0.86rem', marginBottom: '20px' }}>
+            {error}
           </div>
         )}
 
@@ -172,6 +181,8 @@ export default function SignupPage() {
               <input
                 type="password"
                 required
+                minLength={8}
+                maxLength={128}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="At least 8 characters"
